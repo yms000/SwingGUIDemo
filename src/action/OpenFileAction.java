@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 import static javax.swing.JFileChooser.APPROVE_OPTION;
@@ -39,6 +40,15 @@ public class OpenFileAction extends AbstractAction {
             if (file != null) {
                 String path = file.getPath();
                 MyPanel editor = MyFrame.getMainFrame().getEditorPane();
+
+//                FileInputStream fis = null;
+//                try {
+//                    fis = new FileInputStream(file);
+//                    editor.read(fis, null);
+//                } catch (IOException e1) {
+//                    e1.printStackTrace();
+//                }
+//                MyFrame.getMainFrame().setContentPane(editor);
 
                 try {
                     System.out.println("path = " + path);

@@ -3,6 +3,7 @@ package frame;
 import action.OpenFileAction;
 import action.SaveAsFileAction;
 import action.SaveFileAction;
+import action.SearchAction;
 import panel.MyPanel;
 
 import javax.swing.*;
@@ -59,6 +60,7 @@ public class MyFrame
         menuFile.add(OpenFileAction.getInstance("open")).setMnemonic('O');
         menuFile.add(SaveFileAction.getInstance("save")).setMnemonic('S');
         menuFile.add(SaveAsFileAction.getInstance("save as"));
+        menuFile.add(SearchAction.getInstance("search"));
 
         mainMenu.add(menuFile);
         setJMenuBar(mainMenu);
