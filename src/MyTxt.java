@@ -1,5 +1,6 @@
-import frame.MyFrame;
 
+
+import frame.MyFrame;
 import javax.swing.*;
 
 public class MyTxt {

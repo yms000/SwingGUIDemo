@@ -1,6 +1,12 @@
 package dialog;
 
+import frame.MyFrame;
+
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 public class SearchDialog extends JDialog {
 
@@ -8,8 +14,9 @@ public class SearchDialog extends JDialog {
     /**
      * Creates new form NewJDialog
      */
-    public SearchDialog () {
-        initComponents();
+    public SearchDialog(
+    ) {
+        initUi();
     }
 
     /**
@@ -19,123 +26,202 @@ public class SearchDialog extends JDialog {
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">
-    private void initComponents() {
+    private void initUi() {
 
-        label = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        searchButt = new javax.swing.JButton();
-        checkBox = new javax.swing.JCheckBox();
-        panel = new javax.swing.JPanel();
-        upButt = new javax.swing.JRadioButton();
-        downButt = new javax.swing.JRadioButton();
-        cancelButt = new javax.swing.JButton();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-
+        label = new JLabel();
         label.setText("查找内容(N):");
+        label.setSize(80, 25);
 
-        jTextField1.setText("jTextField1");
+        searchField = new JTextField();
+        searchField.setSize(125, 25);
 
+        searchButt = new JButton();
+        searchButt.setSize(125, 25);
         searchButt.setText("查找下一个(F)");
-        searchButt.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+        searchButt.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                findNxitPerformed(evt);
             }
         });
 
+        checkBox = new JCheckBox();
         checkBox.setText("区分大小写(C)");
-        checkBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox1ActionPerformed(evt);
+        checkBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                isMatchCase(evt);
             }
         });
 
-        panel.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "方向"));
-
+        panel = new JPanel();
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "方向"));
+        upButt = new JRadioButton();
+        downButt = new JRadioButton();
+        ButtonGroup btnGroup = new ButtonGroup();
+        btnGroup.add(upButt);
+        btnGroup.add(downButt);
+        downButt.setSelected(true);
         upButt.setText("向上");
-        upButt.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton1ActionPerformed(evt);
+        downButt.setText("向下");
+        downButt.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                searchUpOrDown(e);
             }
         });
 
-        downButt.setText("向下");
+        upButt.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                searchUpOrDown(e);
+            }
+        });
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(panel);
-        panel.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                                    .addComponent(upButt)
-                                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                    .addComponent(downButt)
-                                                    .addGap(0, 0, 0))
+        // 方向面板设置布局
+        GroupLayout pLayout = new GroupLayout(panel);
+        panel.setLayout(pLayout);
+
+        // 水平方向
+        pLayout.setHorizontalGroup(
+                pLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                       .addGroup(pLayout.createSequentialGroup()
+                                        .addComponent(upButt)
+                                        .addComponent(downButt)
+                                        .addGap(0, 0, 0))
         );
-        jPanel1Layout.setVerticalGroup(
-                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                                                           .addComponent(upButt)
-                                                                           .addComponent(downButt))
-                                                    .addGap(0, 0, 0))
+        // 垂直方向
+        pLayout.setVerticalGroup(
+                pLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                       .addGroup(pLayout.createSequentialGroup()
+                                        .addGroup(pLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                         .addComponent(upButt)
+                                                         .addComponent(downButt))
+                                        .addGap(0, 0, 0))
         );
 
+        cancelButt = new JButton();
+        cancelButt.setSize(125, 25);
         cancelButt.setText("取消");
+        cancelButt.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cancel(e);
+            }
+        });
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+
+        // dialog设置布局
+        GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
+        // 水平布局
         layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                       .addGroup(layout.createSequentialGroup()
                                       .addContainerGap()
-                                      .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                                                       .addGroup(layout.createSequentialGroup()
-                                                                      .addComponent(label, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                      .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                                      .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                                      .addComponent(label)
+                                                                      .addComponent(searchField))
                                                       .addGroup(layout.createSequentialGroup()
                                                                       .addComponent(checkBox)
-                                                                      .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                                      .addComponent(panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                                      .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                      .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                      .addComponent(searchButt, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                      .addComponent(cancelButt, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                      .addContainerGap())
+                                                                      .addComponent(panel)))
+                                      .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                                                      .addComponent(searchButt, 125, 125, 125)
+                                                      .addComponent(cancelButt, 125, 125, 125))
+                                      .addContainerGap()
+                      )
         );
+        // 垂直布局
         layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                       .addGroup(layout.createSequentialGroup()
                                       .addContainerGap()
-                                      .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                                                       .addComponent(label)
-                                                      .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                      .addComponent(searchField)
                                                       .addComponent(searchButt))
                                       .addGap(18, 18, 18)
-                                      .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                                                       .addComponent(checkBox)
-                                                      .addComponent(panel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                      .addComponent(panel)
                                                       .addComponent(cancelButt))
                                       .addContainerGap())
         );
 
         pack();
-    }// </editor-fold>
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
     }
 
-    private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void findNxitPerformed(ActionEvent evt) {
         // TODO add your handling code here:
-    }
+        final JEditorPane editor = MyFrame.getMainFrame().getEditorPane();
+        String content = editor.getText();
+        String matchStr= searchField.getText();
 
-    private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+        if (isMatch) {
+
+        }
+
+
+        if (!content.contains(matchStr)) {
+
+        }
+
+        if (isDown) {
+
+        }
+
     }
 
     /**
-     * @param args the command line arguments
+     * 设置是否区分大小
+     *
+     * @param evt
+     *         ActionEven
+     */
+    private void isMatchCase(ActionEvent evt) {
+        if (checkBox.isSelected()) {
+            isMatch = true;
+            System.out.println("isMatch: " + isMatch);
+        } else {
+            isMatch = false;
+            System.out.println("isMatch: " + isMatch);
+        }
+    }
+
+    /**
+     * 设置查找方向
+     *
+     * @param evt
+     *         ItemEven
+     */
+    private void searchUpOrDown(ItemEvent evt) {
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            if (evt.getSource() == upButt) {
+                isDown = false;
+            } else {
+                isDown = true;
+            }
+        }
+    }
+
+    /**
+     * 取消查找，关闭dialog
+     *
+     * @param evt
+     *         事件
+     */
+    private void cancel(ActionEvent evt) {
+        dispose();
+    }
+
+    private boolean isDown = true;
+    private boolean isMatch = false;
+
+    /**
+     * @param args
+     *         the command line arguments
      */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -144,27 +230,22 @@ public class SearchDialog extends JDialog {
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(NewJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(NewJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(NewJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(NewJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
         }
         //</editor-fold>
 
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                NewJDialog dialog = new NewJDialog(new javax.swing.JFrame(), true);
+                SearchDialog dialog = new SearchDialog();
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
@@ -176,14 +257,12 @@ public class SearchDialog extends JDialog {
         });
     }
 
-    // Variables declaration - do not modify
-    private javax.swing.JButton searchButt;
-    private javax.swing.JButton cancelButt;
-    private javax.swing.JCheckBox checkBox;
-    private javax.swing.JLabel label;
-    private javax.swing.JPanel panel;
-    private javax.swing.JRadioButton upButt;
-    private javax.swing.JRadioButton downButt;
-    private javax.swing.JTextField jTextField1;
-    // End of variables declaration
+    private JButton searchButt;
+    private JButton cancelButt;
+    private JCheckBox checkBox;
+    private JLabel label;
+    private JPanel panel;
+    private JRadioButton upButt;
+    private JRadioButton downButt;
+    private JTextField searchField;
 }
