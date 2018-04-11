@@ -3,19 +3,62 @@ package dialog;
 import frame.MyFrame;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.JTextComponent;
+import java.awt.*;
+import java.awt.event.*;
 
 public class SearchDialog extends JDialog {
 
+    private static SearchDialog dialog;
+
+    private JTextComponent text;
+
+    public static SearchDialog getInstance(Frame owner) {
+
+        if (dialog == null) {
+            dialog = new SearchDialog(owner);
+        }
+        dialog.setVisible(true);//退出之后，显示的对话框还是同一个；dialog是全局变量在对话框退出时没有立即销毁
+        return dialog;
+    }
+
+    public static SearchDialog getInstance(Frame owner, JTextComponent text) {
+
+        if (dialog == null) {
+            dialog = new SearchDialog(owner, text);
+        }
+        dialog.setVisible(true);//退出之后，显示的对话框还是同一个；dialog是全局变量在对话框退出时没有立即销毁
+        return dialog;
+    }
 
     /**
      * Creates new form NewJDialog
+     *
+     * @param owner
+     *         主窗口，设置主窗口之后可以跟随主窗口最小化、最大化
      */
-    public SearchDialog(
+    private SearchDialog(Frame owner) {
+        super(owner);
+        this.text = ((MyFrame) getParent()).getEditorPane();
+        initUi();
+    }
+
+    /**
+     * Creates new form NewJDialog
+     *
+     * @param owner
+     *         主窗口
+     * @param text
+     *         需要查找内容的面板
+     */
+    private SearchDialog(
+            Frame owner,
+            JTextComponent text
     ) {
+        super(owner);
+        if (text != null) this.text = text;
         initUi();
     }
 
@@ -34,23 +77,35 @@ public class SearchDialog extends JDialog {
 
         searchField = new JTextField();
         searchField.setSize(125, 25);
+        // 输入法，是否禁用输入法，false禁止（不能输入汉字）；true允许，可以输入汉字
+        //searchField.enableInputMethods(true);
+
+        // 输入法和JTextField冲突问题没有解决
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                searchEnable(e);
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                searchEnable(e);
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+            }
+        });
 
         searchButt = new JButton();
         searchButt.setSize(125, 25);
         searchButt.setText("查找下一个(F)");
-        searchButt.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                findNxitPerformed(evt);
-            }
-        });
+        searchButt.setEnabled(false);
+        searchButt.addActionListener(this::findNextPerformed);
 
         checkBox = new JCheckBox();
         checkBox.setText("区分大小写(C)");
-        checkBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                isMatchCase(evt);
-            }
-        });
+        checkBox.addActionListener(this::isMatchCase);
 
         panel = new JPanel();
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "方向"));
@@ -62,19 +117,8 @@ public class SearchDialog extends JDialog {
         downButt.setSelected(true);
         upButt.setText("向上");
         downButt.setText("向下");
-        downButt.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                searchUpOrDown(e);
-            }
-        });
-
-        upButt.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                searchUpOrDown(e);
-            }
-        });
+        downButt.addItemListener(this::searchUpOrDown);
+        upButt.addItemListener(this::searchUpOrDown);
 
         // 方向面板设置布局
         GroupLayout pLayout = new GroupLayout(panel);
@@ -101,14 +145,7 @@ public class SearchDialog extends JDialog {
         cancelButt = new JButton();
         cancelButt.setSize(125, 25);
         cancelButt.setText("取消");
-        cancelButt.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cancel(e);
-            }
-        });
-
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        cancelButt.addActionListener(this::cancel);
 
 
         // dialog设置布局
@@ -150,26 +187,79 @@ public class SearchDialog extends JDialog {
                                       .addContainerGap())
         );
 
+        // 不可调整大小
+        setResizable(false);
+        // 设置起始位置：居中
+        setLocationRelativeTo(null);
+        // 设置标题
+        setTitle("查找");
+
         pack();
+        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        //setAlwaysOnTop(true); // 总是置顶，处于整个系统窗口的最上层
+        //setModal(true); // 阻塞
     }
 
-    private void findNxitPerformed(ActionEvent evt) {
-        // TODO add your handling code here:
-        final JEditorPane editor = MyFrame.getMainFrame().getEditorPane();
-        String content = editor.getText();
-        String matchStr= searchField.getText();
-
-        if (isMatch) {
-
+    /**
+     * 根据文本框内容，设置查询按钮是否可用
+     * getText()正常情况下，返回的字符串最小长度为0，只有遇到@{BadLocationException}才会返回null
+     *
+     * @param e
+     *         文档事件
+     */
+    private void searchEnable(DocumentEvent e) {
+        if (searchField.getText() == null || searchField.getText().length() == 0) {
+            searchButt.setEnabled(false);
+        } else {
+            searchButt.setEnabled(true);
         }
 
+    }
 
-        if (!content.contains(matchStr)) {
+    /**
+     * 查找下一个
+     *
+     * @param evt
+     *         ActionEvent事件
+     */
+    private void findNextPerformed(ActionEvent evt) {
 
+        String content = text.getText();
+        String matchStr = searchField.getText();
+
+        if (isMatch) {
+            content = content.toUpperCase();
+            matchStr = matchStr.toUpperCase();
         }
 
         if (isDown) {
-
+            // 是否是再次查询,getCaretPosition()返回当前光标位置
+            if (text.getSelectedText() == null)
+                findIndex = content.indexOf(matchStr, text.getCaretPosition() + 1);
+            else
+                findIndex = content.indexOf(matchStr, text.getCaretPosition() - searchField.getText().length() + 1);
+            // 检测查询结果,做出相应的处理
+            if (findIndex > -1) {
+                // 设置光标位置
+                text.setCaretPosition(findIndex);
+                text.select(findIndex, findIndex + matchStr.length());
+            } else {
+                JOptionPane.showMessageDialog(this, "没有找到“" + searchField.getText() + "”");
+            }
+        } else {
+            // 是否是再次查询,getCaretPosition()返回当前光标位置
+            if (text.getSelectedText() == null)
+                findIndex = content.lastIndexOf(matchStr, text.getCaretPosition() - 1);
+            else
+                findIndex = content.lastIndexOf(matchStr, text.getCaretPosition() - searchField.getText().length() - 1);
+            // 检测查询结果,做出相应的处理
+            if (findIndex > -1) {
+                // 设置光标位置
+                text.setCaretPosition(findIndex);
+                text.select(findIndex, findIndex + matchStr.length());
+            } else {
+                JOptionPane.showMessageDialog(this, "没有找到“" + searchField.getText() + "”");
+            }
         }
 
     }
@@ -181,13 +271,7 @@ public class SearchDialog extends JDialog {
      *         ActionEven
      */
     private void isMatchCase(ActionEvent evt) {
-        if (checkBox.isSelected()) {
-            isMatch = true;
-            System.out.println("isMatch: " + isMatch);
-        } else {
-            isMatch = false;
-            System.out.println("isMatch: " + isMatch);
-        }
+        isMatch = checkBox.isSelected();
     }
 
     /**
@@ -198,11 +282,7 @@ public class SearchDialog extends JDialog {
      */
     private void searchUpOrDown(ItemEvent evt) {
         if (evt.getStateChange() == ItemEvent.SELECTED) {
-            if (evt.getSource() == upButt) {
-                isDown = false;
-            } else {
-                isDown = true;
-            }
+            isDown = evt.getSource() != upButt;
         }
     }
 
@@ -218,44 +298,27 @@ public class SearchDialog extends JDialog {
 
     private boolean isDown = true;
     private boolean isMatch = false;
+    private int findIndex = 0;
 
-    /**
-     * @param args
-     *         the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-         */
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        }
-        //</editor-fold>
 
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                SearchDialog dialog = new SearchDialog();
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
-        });
-    }
+//    public static void main(String args[]) {
+//        try {
+//            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+//            e.printStackTrace();
+//        }
+//
+//        invokeLater(() -> {
+//            SearchDialog dialog = new SearchDialog();
+//            dialog.addWindowListener(new WindowAdapter() {
+//                @Override
+//                public void windowClosing(WindowEvent e) {
+//                    System.exit(0);
+//                }
+//            });
+//            dialog.setVisible(true);
+//        });
+//    }
 
     private JButton searchButt;
     private JButton cancelButt;

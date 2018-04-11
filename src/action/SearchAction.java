@@ -1,5 +1,8 @@
 package action;
 
+import dialog.SearchDialog;
+import frame.MyFrame;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
@@ -20,6 +23,6 @@ public class SearchAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
+        SearchDialog.getInstance(MyFrame.getMainFrame(), MyFrame.getMainFrame().getEditorPane());
     }
 }
